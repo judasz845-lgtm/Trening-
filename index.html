@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Dziennik Treningowy v8 – Masa 4 Dni</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --card-border: #334155;
+    --text: #f8fafc;
+    --muted: #94a3b8;
+    --accent: #3b82f6;
+    --accent-hover: #2563eb;
+    --green: #10b981;
+    --green-bg: rgba(16, 185, 129, 0.15);
+    --orange: #f59e0b;
+    --orange-bg: rgba(245, 158, 11, 0.15);
+    --red: #ef4444;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  body { background: var(--bg); color: var(--text); padding-bottom: 110px; line-height: 1.4; }
+  header { background: #020617; padding: 14px 16px; border-bottom: 1px solid var(--card-border); position: sticky; top: 0; z-index: 50; }
+  .top-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .title-wrap { display: flex; align-items: center; gap: 8px; }
+  h1 { font-size: 16px; font-weight: 700; color: #fff; }
+  .cycle-badge { background: var(--accent); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 99px; }
+  select { background: var(--card); color: var(--text); border: 1px solid var(--card-border); padding: 6px 10px; border-radius: 8px; font-size: 13px; font-weight: 600; }
+  .tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px; }
+  .tab { background: var(--card); border: 1px solid var(--card-border); color: var(--muted); padding: 8px 4px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; cursor: pointer; }
+  .tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .progress-wrap { display: flex; align-items: center; gap: 10px; }
+  .progress-bar { flex: 1; height: 7px; background: var(--card); border-radius: 99px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--green); width: 0%; transition: width 0.25s ease; }
+  .progress-text { font-size: 12px; font-weight: 700; color: var(--green); min-width: 36px; text-align: right; }
+  .container { max-width: 640px; margin: 0 auto; padding: 14px; }
+  .banner { background: var(--orange-bg); border: 1px solid var(--orange); color: #fcd34d; padding: 10px 12px; border-radius: 10px; font-size: 13px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .btn-copy-prev { background: var(--accent); color: #fff; border: none; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+  .ex-card { background: var(--card); border: 1px solid var(--card-border); border-radius: 12px; padding: 14px; margin-bottom: 12px; }
+  .ex-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 6px; }
+  .ex-title-area { flex: 1; }
+  .ex-name { font-size: 15px; font-weight: 700; color: #fff; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
+  .ex-name:hover { color: #93c5fd; }
+  .sub-badge { background: #7c3aed; color: #fff; font-size: 10px; padding: 1px 6px; border-radius: 4px; font-weight: 700; margin-left: 6px; vertical-align: middle; }
+  .ex-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .ex-actions { display: flex; gap: 6px; }
+  .icon-btn { background: #0f172a; border: 1px solid var(--card-border); color: var(--text); width: 30px; height: 30px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .icon-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .tip-box { background: #0f172a; border-left: 3px solid var(--accent); padding: 8px 10px; font-size: 12px; color: #cbd5e1; border-radius: 6px; margin: 8px 0; display: none; }
+  .tip-box.show { display: block; }
+  .prev-box { background: var(--green-bg); border: 1px solid rgba(16,185,129,0.3); color: #6ee7b7; font-size: 12px; padding: 6px 10px; border-radius: 8px; margin-bottom: 8px; }
+  .prog-alert { background: var(--orange-bg); border: 1px solid rgba(245,158,11,0.4); color: #fcd34d; font-size: 12px; font-weight: 700; padding: 6px 10px; border-radius: 8px; margin-bottom: 8px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+  th { font-size: 11px; color: var(--muted); text-align: center; padding-bottom: 6px; font-weight: 600; }
+  td { padding: 4px; text-align: center; }
+  .set-num { font-size: 13px; font-weight: 700; color: var(--muted); width: 32px; }
+  input[type="number"] { width: 100%; max-width: 84px; background: #0f172a; border: 1px solid var(--card-border); color: #fff; padding: 8px 6px; border-radius: 8px; text-align: center; font-size: 15px; font-weight: 600; }
+  input[type="number"]:focus { outline: none; border-color: var(--accent); }
+  .check-btn { width: 38px; height: 36px; border-radius: 8px; border: 1px solid var(--card-border); background: #0f172a; color: var(--muted); font-size: 16px; font-weight: 700; cursor: pointer; }
+  .check-btn.done { background: var(--green); border-color: var(--green); color: #fff; }
+  .summary-card { background: var(--card); border: 1px solid var(--card-border); border-radius: 12px; padding: 14px; margin-top: 16px; }
+  .stats-row { display: flex; justify-content: space-around; text-align: center; margin-bottom: 14px; }
+  .stat-val { font-size: 18px; font-weight: 800; color: #fff; }
+  .stat-lbl { font-size: 11px; color: var(--muted); }
+  .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .btn-full { width: 100%; padding: 10px; border-radius: 8px; border: none; font-size: 13px; font-weight: 700; cursor: pointer; margin-bottom: 8px; }
+  .btn-green { background: var(--green); color: #022c22; }
+  .btn-sec { background: #334155; color: #fff; border: none; padding: 9px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; }
+  .btn-cycle { background: rgba(59,130,246,0.2); border: 1px solid var(--accent); color: #93c5fd; margin-top: 8px; }
+  .timer-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #020617; border-top: 1px solid var(--card-border); padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; z-index: 60; }
+  .timer-time { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; color: #fff; }
+  .timer-time.running { color: var(--green); }
+  .timer-btns { display: flex; gap: 6px; }
+  .t-btn { background: var(--card); border: 1px solid var(--card-border); color: #fff; padding: 7px 10px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; }
+  .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.75); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 100; }
+  .modal-bg.open { display: flex; }
+  .modal { background: var(--card); border: 1px solid var(--card-border); border-radius: 14px; width: 100%; max-width: 440px; max-height: 80vh; overflow-y: auto; padding: 16px; }
+  .modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .modal-title { font-size: 16px; font-weight: 700; }
+  .close-modal { background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; }
+  .alt-item { background: #0f172a; border: 1px solid var(--card-border); padding: 10px 12px; border-radius: 8px; margin-bottom: 8px; cursor: pointer; font-size: 14px; font-weight: 600; }
+  .alt-item:hover { border-color: var(--accent); }
+  .hist-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--card-border); font-size: 13px; }
+  /* Tagi mięśniowe */
+  .tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+  .tag { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 99px; border: 1px solid var(--c); color: var(--c); background: transparent; }
+  .tag.main { background: var(--c); color: #0f172a; }
+  /* Przycisk kopiowania w dół */
+  .down-btn { width: 30px; height: 36px; border-radius: 8px; border: 1px solid var(--card-border); background: #0f172a; color: var(--accent); font-size: 16px; font-weight: 700; cursor: pointer; }
+  .down-btn:active { background: var(--accent); color: #fff; }
+  .down-btn:disabled { opacity: 0.25; cursor: default; }
+  /* Wykres tonażu */
+  .chart-title { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+  .chart-note { font-size: 11px; color: var(--muted); margin-bottom: 12px; }
+  .chart { display: flex; align-items: flex-end; justify-content: space-between; gap: 6px; height: 160px; }
+  .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; min-width: 0; }
+  .bar-val { font-size: 10px; font-weight: 700; color: var(--muted); margin-bottom: 3px; white-space: nowrap; }
+  .bar { width: 100%; background: var(--accent); border-radius: 5px 5px 0 0; opacity: 0.55; }
+  .bar.current { opacity: 1; }
+  .bar.deload { background: var(--orange); }
+  .bar-lbl { font-size: 11px; font-weight: 700; color: var(--muted); margin-top: 5px; }
+  .bar-lbl.current { color: #fff; }
+  .chart-delta { font-size: 12px; margin-top: 10px; color: var(--muted); text-align: center; }
+
+  .toolbar{display:flex;gap:8px;align-items:center;justify-content:flex-end;margin-bottom:10px;flex-wrap:wrap}
+  .accent-picker{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:5px}
+  .accent-picker input{width:30px;height:28px;border:0;background:transparent;padding:0}
+  .day-icon{display:block;font-size:18px;line-height:1.2}.day-name{display:block;font-size:10px}
+  .set-row-done{animation:setFlash .35s ease}.exercise-complete{animation:exercisePulse .55s ease}
+  @keyframes setFlash{50%{background:rgba(16,185,129,.18)}}
+  @keyframes exercisePulse{50%{transform:scale(1.012);box-shadow:0 0 0 2px var(--green)}}
+  .ex-card.collapsed{padding:9px 12px}.ex-card.collapsed .ex-body{display:none}
+  .collapse-summary{font-size:12px;color:var(--green);font-weight:700;margin-top:4px}
+  .pr-badge{display:inline-block;color:#fbbf24;font-size:11px;font-weight:800;margin-left:5px}
+  .warmup-box{background:rgba(59,130,246,.12);border:1px solid var(--accent);padding:9px;border-radius:8px;font-size:12px;margin:8px 0}
+  .mini-chart{width:100%;height:90px;display:block;margin:8px 0}
+  .activity-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:8px}
+  .activity-day{border:1px solid var(--card-border);border-radius:7px;text-align:center;padding:6px 2px;font-size:10px;color:var(--muted)}
+  .activity-day.active{background:var(--green-bg);border-color:var(--green);color:var(--green);font-weight:800}
+  .muscle-line{display:grid;grid-template-columns:70px 1fr 55px;gap:8px;align-items:center;font-size:11px;margin:8px 0}
+  .muscle-track{height:8px;background:var(--bg);border-radius:9px;overflow:hidden}.muscle-fill{height:100%;background:var(--accent);border-radius:9px}
+  .confetti{position:fixed;inset:0;pointer-events:none;z-index:200;overflow:hidden}
+  .confetti i{position:absolute;top:-12px;width:8px;height:12px;background:hsl(var(--h),85%,60%);animation:fall 1.8s linear forwards}
+  @keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:.2}}
+  body.light{--bg:#f1f5f9;--card:#fff;--card-border:#cbd5e1;--text:#0f172a;--muted:#64748b}
+  body.light header,body.light .timer-bar{background:#e2e8f0}
+  body.light h1,body.light .ex-name,body.light .stat-val,body.light .timer-time{color:#0f172a}
+  body.light input[type=number],body.light .icon-btn,body.light .check-btn,body.light .down-btn{background:#f8fafc;color:#0f172a}
+
+  /* tryb aplikacji */
+  html { background: #020617; -webkit-text-size-adjust: 100%; }
+  body { overscroll-behavior-y: none; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; }
+  input { -webkit-user-select: text; user-select: text; }
+  header { padding-top: calc(14px + env(safe-area-inset-top, 0px)); }
+  .timer-bar { padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px)); }
+  body { padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px)); }
+  @media (display-mode: standalone) { body { min-height: 100vh; } }
+</style>
+<meta name="theme-color" content="#0f172a">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Trening">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+</head>
+<body>
+
+<header>
+  <div class="top-row">
+    <div class="title-wrap">
+      <h1>Dziennik Treningowy</h1>
+      <span class="cycle-badge" id="cycleBadge">Cykl 1</span>
+    </div>
+    <select id="weekSelect" onchange="changeWeek()">
+      <option value="1">Tydzień 1</option>
+      <option value="2">Tydzień 2</option>
+      <option value="3">Tydzień 3</option>
+      <option value="4">Tydzień 4</option>
+      <option value="5">Tydzień 5</option>
+      <option value="6">Tydzień 6</option>
+      <option value="7">Tydzień 7 (Deload)</option>
+    </select>
+  </div>
+  <div class="tabs">
+    <div class="tab active" onclick="selectDay(1)" id="tab1"><span class="day-icon">🏋️</span><span class="day-name">Klatka / Barki</span></div>
+    <div class="tab" onclick="selectDay(2)" id="tab2"><span class="day-icon">🦵</span><span class="day-name">Nogi</span></div>
+    <div class="tab" onclick="selectDay(3)" id="tab3"><span class="day-icon">🦍</span><span class="day-name">Plecy</span></div>
+    <div class="tab" onclick="selectDay(4)" id="tab4"><span class="day-icon">💪</span><span class="day-name">Barki / Ramiona</span></div>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-text" id="progressText">0%</div>
+  </div>
+</header>
+
+<div class="container">
+  <div class="summary-card" style="margin-bottom:12px;padding:10px 12px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+      <strong style="font-size:13px">⚙️ Wygląd aplikacji</strong>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <label style="font-size:12px;color:var(--muted)">Motyw <select id="themeSelect" onchange="setTheme(this.value)"><option value="dark">Ciemny</option><option value="light">Jasny</option></select></label>
+        <label class="accent-picker">Akcent <input id="accentPicker" type="color" value="#3b82f6" onchange="setAccent(this.value)" aria-label="Kolor akcentu"></label>
+      </div>
+    </div>
+  </div>
+  <div id="topBanners"></div>
+  <div id="exercisesList"></div>
+
+  <div class="summary-card">
+    <div class="stats-row">
+      <div><div class="stat-val" id="statSets">0 / 0</div><div class="stat-lbl">Wykonane serie</div></div>
+      <div><div class="stat-val" id="statTon">0 kg</div><div class="stat-lbl">Przerzucony tonaż</div></div>
+    </div>
+    <button class="btn-full btn-green" onclick="copyDaySummary()">📲 Kopiuj podsumowanie dnia</button>
+    <div class="action-grid">
+      <button class="btn-sec" onclick="exportBackup()">💾 Zapisz kopię (JSON)</button>
+      <button class="btn-sec" onclick="document.getElementById('importFile').click()">📂 Wczytaj kopię</button>
+    </div>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importBackup(event)">
+    <button class="btn-full btn-cycle" onclick="startNewCycle()">🔄 Rozpocznij nowy cykl (po Tyg. 7)</button>
+  </div>
+
+  <div class="summary-card">
+    <div class="chart-title">📅 Aktywność treningowa</div>
+    <div id="activityStats"></div>
+  </div>
+  <div class="summary-card">
+    <div class="chart-title">💪 Tonaż według grup mięśniowych</div>
+    <div id="muscleVolume"></div>
+  </div>
+  <div class="summary-card">
+    <div class="chart-title" id="chartTitle">📊 Tonaż tygodniowy</div>
+    <div class="chart-note">Suma ze wszystkich 4 dni, liczona z wpisanych ciężarów i powtórzeń.</div>
+    <div id="weeklyChart"></div>
+    <div class="chart-delta" id="chartDelta"></div>
+  </div>
+</div>
+
+<div class="timer-bar">
+  <div>
+    <div style="font-size:11px; color:var(--muted);">Przerwa między seriami</div>
+    <div class="timer-time" id="timerDisplay">00:00</div>
+  </div>
+  <div class="timer-btns">
+    <button class="t-btn" onclick="adjustTimer(-15)">-15s</button>
+    <button class="t-btn" onclick="adjustTimer(15)">+15s</button>
+    <button class="t-btn" onclick="toggleTimer()" id="pauseBtn">Start</button>
+    <button class="t-btn" onclick="resetTimer()">Reset</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalBg" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <div class="modal-title" id="modalTitle">Okno</div>
+      <button class="close-modal" onclick="closeModal()">✕</button>
+    </div>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+const PLAN = {
+  1: [
+    { id: "d1_1", name: "Wyciskanie sztangi", sets: 3, minR: 6, maxR: 8, rest: 180, tip: "Ściągnij łopatki, stopy stabilnie w podłodze. Opuszczaj sztangę do dolnej części mostka.", alts: ["Wyciskanie hantli na ławce płaskiej", "Wyciskanie na maszynie Smitha płasko", "Wyciskanie na maszynie siedząc (Chest Press)"] },
+    { id: "d1_2", name: "Wyciskanie hantli skos", sets: 3, minR: 8, maxR: 10, rest: 120, tip: "Ustaw ławkę na 30 stopni. Prowadź łokcie pod kątem ok. 45 stopni względem tułowia.", alts: ["Wyciskanie sztangi na skosie dodatnim", "Wyciskanie na maszynie Hammer skos dodatni"] },
+    { id: "d1_3", name: "Rozpiętki z hantlami", sets: 2, minR: 12, maxR: 15, rest: 90, tip: "Lekko ugięte łokcie przez cały ruch. Skup się na głębokim rozciągnięciu klatki na dole.", alts: ["Rozpiętki na maszynie (Butterfly / Pec Deck)", "Rozpiętki na bramie z linkami"] },
+    { id: "d1_4", name: "Dipy", sets: 2, minR: 8, maxR: 12, rest: 120, tip: "Pochyl tułów lekko do przodu i skieruj łokcie lekko na zewnątrz, aby zaangażować dolny akton klatki.", alts: ["Wyciskanie sztangi na skosie ujemnym", "Krzyżowanie linek wyciągu górnego w dół"] },
+    { id: "d1_5", name: "Wznosy na boki z hantlami", sets: 4, minR: 12, maxR: 15, rest: 90, tip: "Unoszenie w płaszczyźnie łopatki (lekko przed siebie), łokieć prowadzi ruch, bez bujania tułowiem.", alts: ["Wznosy na boki na wyciągu dolnym", "Wznosy na boki na maszynie"] },
+    { id: "d1_6", name: "Odwrotne rozpiętki z hantlami", sets: 3, minR: 12, maxR: 15, rest: 90, tip: "Oprzyj klatkę o ławkę skośną, rozkładaj ramiona szeroko na boki, celując w tył barków.", alts: ["Odwrotne rozpiętki na maszynie (Reverse Pec Deck)", "Facepull na wyciągu górnym"] },
+    { id: "d1_7", name: "Wyprosty ramion z drążkiem", sets: 2, minR: 10, maxR: 12, rest: 90, tip: "Łokcie przyklejone nieruchomo do boków tułowia, pełny wyprost i mocne spięcie na dole.", alts: ["Prostowanie ramion z liną na wyciągu", "Wyciskanie sztangi wąskim chwytem"] },
+    { id: "d1_8", name: "Wyprosty ramion zza głowy", sets: 2, minR: 10, maxR: 12, rest: 90, tip: "Utrzymuj łokcie skierowane w górę, opuszczaj ciężar głęboko za głowę dla rozciągnięcia głowy długiej.", alts: ["Wyciskanie francuskie leżąc ze sztangą łamaną", "Wyprosty z liną zza głowy na wyciągu"] }
+  ],
+  2: [
+    { id: "d2_1", name: "Uginanie nóg na maszynie", sets: 2, minR: 10, maxR: 12, rest: 120, tip: "Dociśnij biodra do siedziska/ławki. Kontroluj powolny powrót ciężaru.", alts: ["Uginanie nóg leżąc na maszynie", "Uginanie nóg siedząc na maszynie"] },
+    { id: "d2_2", name: "Back squat", sets: 3, minR: 6, maxR: 8, rest: 180, tip: "Nabierz powietrze do brzucha (bracing), kolana idą w linii palców stóp, zejdź poniżej kąta prostego.", alts: ["Przysiad na suwnicy Smitha", "Hack Squat (maszyna)", "Przysiad przedni (Front Squat)"] },
+    { id: "d2_3", name: "Romanian deadlift (RDL)", sets: 3, minR: 8, maxR: 10, rest: 150, tip: "Minimalnie ugięte kolana, wypychaj biodra maksymalnie w tył przy prostych plecach do poczucia rozciągania dwugłowych.", alts: ["Martwy ciąg na prostych nogach z hantlami", "Dzień dobry (Good Morning) ze sztangą"] },
+    { id: "d2_4", name: "Suwnica", sets: 3, minR: 10, maxR: 12, rest: 150, tip: "Nie odrywaj dolnego odcinka pleców od oparcia w dolnej fazie ruchu, nie blokuj kolan na górze.", alts: ["Wykroki chodzone z hantlami", "Przysiad bułgarski z hantlami"] },
+    { id: "d2_5", name: "Przywodziciel", sets: 2, minR: 12, maxR: 15, rest: 90, tip: "Płynny ruch bez szarpania, przytrzymaj pełne złączenie nóg przez 1 sekundę.", alts: ["Przysiad Sumo z hantlem", "Przywodzenie nogi z linką wyciągu dolnego"] },
+    { id: "d2_6", name: "Odwodziciel", sets: 2, minR: 12, maxR: 15, rest: 90, tip: "Pochyl tułów lekko w przód, aby mocniej zaangażować pośladkowy średni i mały.", alts: ["Odwodzenie nogi w tył/bok na wyciągu dolnym", "Spacer z gumą mini-band nad kolanami"] },
+    { id: "d2_7", name: "Wspięcia na palce stojąc / siedząc", sets: 4, minR: 10, maxR: 15, rest: 90, tip: "Pełne rozciągnięcie pięty na dole (pauza 1 sek) i maksymalne wspięcie na palce na górze.", alts: ["Wspięcia na palce na suwnicy", "Ośle wspięcia na maszynie"] }
+  ],
+  3: [
+    { id: "d3_1", name: "Podciąganie szerokim chwytem", sets: 3, minR: 6, maxR: 10, rest: 150, tip: "Zacznij ruch od ściągnięcia łopatek w dół, prowadź klatkę piersiową w stronę drążka.", alts: ["Ściąganie drążka wyciągu górnego szerokim chwytem", "Podciąganie na maszynie ze wspomaganiem"] },
+    { id: "d3_2", name: "Wiosłowanie końcem sztangi", sets: 3, minR: 8, maxR: 10, rest: 120, tip: "Plecy proste, tułów pochylony ok. 45 stopni. Przyciągaj ciężar w stronę dolnej części mostka.", alts: ["Wiosłowanie sztangą w opadzie tułowia", "Wiosłowanie na maszynie (T-Bar Row)"] },
+    { id: "d3_3", name: "Wiosłowanie hantlem (szeroki łokieć)", sets: 2, minR: 10, maxR: 12, rest: 120, tip: "Oprzyj jedną rękę o ławkę, prowadź łokieć szerzej od tułowia, celując w górę pleców i czworoboczny.", alts: ["Wiosłowanie siedząc na wyciągu dolnym szerokim drążkiem", "Wiosłowanie hantlami leżąc na ławce skośnej"] },
+    { id: "d3_4", name: "Przyciąganie haka do klatki", sets: 3, minR: 10, maxR: 12, rest: 120, tip: "Prowadź łokcie blisko ciała w kierunku bioder, aby maksymalnie izolować najszerszy grzbietu.", alts: ["Ściąganie uchwytu neutralnego (V-bar) do klatki", "Wiosłowanie jednorącz na maszynie Hammer"] },
+    { id: "d3_5", name: "Narciarz (wyciąg górny)", sets: 2, minR: 12, maxR: 15, rest: 90, tip: "Ręce niemal proste w łokciach, ściągaj drążek/linę po łuku aż do ud, mocno napinając najszerszy.", alts: ["Przenoszenie hantla za głowę leżąc na ławce", "Pullover na maszynie"] },
+    { id: "d3_6", name: "Facepull stojąc", sets: 3, minR: 12, maxR: 15, rest: 90, tip: "Przyciągaj linę w stronę czoła/uszu, jednocześnie rotując dłonie na zewnątrz (kciuki w tył).", alts: ["Odwrotne rozpiętki na maszynie", "Odwrotne rozpiętki z hantlami w opadzie"] },
+    { id: "d3_7", name: "Szrugsy z hantlami stojąc", sets: 3, minR: 10, maxR: 12, rest: 90, tip: "Unoszenie barków pionowo w górę (w stronę uszu), bez krążenia barkami. Pauza 1 sek na górze.", alts: ["Szrugsy ze sztangą z przodu", "Szrugsy na maszynie Smitha"] },
+    { id: "d3_8", name: "Uginanie ramion ze sztangą łamaną (EZ)", sets: 3, minR: 8, maxR: 12, rest: 90, tip: "Łokcie stabilnie wzdłuż tułowia, pełne rozciągnięcie na dole bez kołysania plecami.", alts: ["Uginanie ramion ze sztangą prostą", "Uginanie ramion na wyciągu dolnym z drążkiem"] },
+    { id: "d3_9", name: "Uginanie ramion nachwytem", sets: 2, minR: 12, maxR: 15, rest: 75, tip: "Chwyt od góry (kciuki skierowane do siebie), celuje w mięsień ramienno-promieniowy i przedramię.", alts: ["Uginanie młotkowe z hantlami", "Uginanie nadgarstków ze sztangą"] }
+  ],
+  4: [
+    { id: "d4_1", name: "Wyciskanie hantlami siedząc", sets: 3, minR: 8, maxR: 10, rest: 150, tip: "Oparcie ławki ustaw na ok. 75–80 stopni (nie idealnie pionowo). Łokcie lekko przed linią barków.", alts: ["Wyciskanie żołnierskie sztangą stojąc (OHP)", "Wyciskanie na maszynie na barki (Shoulder Press)"] },
+    { id: "d4_2", name: "Wyciskanie hantli na ławce płaskiej", sets: 3, minR: 8, maxR: 10, rest: 150, tip: "Opuszczaj hantle do linii klatki piersiowej, kontroluj stabilność nadgarstków.", alts: ["Wyciskanie sztangi na ławce płaskiej", "Wyciskanie na maszynie Hammer płasko"] },
+    { id: "d4_3", name: "Wyciskanie skos dodatni", sets: 2, minR: 10, maxR: 12, rest: 120, tip: "Kąt ławki 30 stopni, skup się na płynnej pracy górnej części klatki piersiowej.", alts: ["Wyciskanie hantli na skosie dodatnim", "Wyciskanie na maszynie Smitha skos dodatni"] },
+    { id: "d4_4", name: "Rozpiętki na bramie z góry", sets: 2, minR: 12, maxR: 15, rest: 90, tip: "Zrób krok do przodu, pochyl lekko tułów i ściągaj linki w dół przed biodra (dolny akton klatki).", alts: ["Dipy na poręczach z pochyleniem tułowia", "Rozpiętki na maszynie Butterfly"] },
+    { id: "d4_5", name: "Wznosy na boki z hantlami lub na wyciągu", sets: 4, minR: 12, maxR: 15, rest: 90, tip: "Wyciąg dolny daje stałe napięcie w całym zakresie – prowadź linkę za plecami lub przed sobą.", alts: ["Wznosy na boki z hantlami siedząc", "Wznosy na boki na maszynie"] },
+    { id: "d4_6", name: "Prostowanie ramion z liną na wyciągu", sets: 2, minR: 12, maxR: 15, rest: 90, tip: "W dolnej fazie ruchu rozchyl końcówki liny na boki, aby maksymalnie dopiąć boczną głowę tricepsa.", alts: ["Wyprosty ramion z drążkiem na wyciągu", "Wyciskanie francuskie hantlami leżąc"] },
+    { id: "d4_7", name: "Uginanie ramion z hantlami o kolano", sets: 3, minR: 10, maxR: 12, rest: 90, tip: "Oprzyj tył ramienia stabilnie o wewnętrzną stronę uda – zero oszukiwania ciałem, czysta izolacja.", alts: ["Uginanie ramion na modlitewniku", "Uginanie ramion z hantlami na ławce skośnej"] }
+  ]
+};
+
+// Tagi mięśniowe: [grupa|nazwa] – pierwszy tag to mięsień główny (wypełniony)
+const MUSCLE_COLORS = { klatka: "#f43f5e", barki: "#f59e0b", triceps: "#a855f7", biceps: "#14b8a6", plecy: "#3b82f6", nogi: "#22c55e" };
+const MUSCLES = {
+  d1_1: ["klatka|Środek klatki", "triceps|Triceps", "barki|Przedni akton barków"],
+  d1_2: ["klatka|Góra klatki", "barki|Przedni akton barków"],
+  d1_3: ["klatka|Rozciągnięcie klatki"],
+  d1_4: ["klatka|Dolny akton klatki", "triceps|Triceps"],
+  d1_5: ["barki|Boczny akton barków"],
+  d1_6: ["barki|Tylny akton barków"],
+  d1_7: ["triceps|Triceps – głowa boczna"],
+  d1_8: ["triceps|Triceps – głowa długa"],
+  d2_1: ["nogi|Dwugłowy uda"],
+  d2_2: ["nogi|Czworogłowy uda", "nogi|Pośladki"],
+  d2_3: ["nogi|Dwugłowy uda", "nogi|Pośladki"],
+  d2_4: ["nogi|Czworogłowy uda", "nogi|Pośladki"],
+  d2_5: ["nogi|Przywodziciele"],
+  d2_6: ["nogi|Pośladkowy średni"],
+  d2_7: ["nogi|Łydki"],
+  d3_1: ["plecy|Najszerszy grzbietu", "biceps|Biceps"],
+  d3_2: ["plecy|Środek pleców", "plecy|Najszerszy grzbietu"],
+  d3_3: ["plecy|Górne plecy", "plecy|Czworoboczny"],
+  d3_4: ["plecy|Najszerszy grzbietu"],
+  d3_5: ["plecy|Najszerszy grzbietu"],
+  d3_6: ["barki|Tylny akton barków", "plecy|Mięśnie rotatorów"],
+  d3_7: ["plecy|Czworoboczny (kaptury)"],
+  d3_8: ["biceps|Biceps"],
+  d3_9: ["biceps|Ramienno-promieniowy", "biceps|Przedramię"],
+  d4_1: ["barki|Przedni akton barków", "barki|Boczny akton barków"],
+  d4_2: ["klatka|Środek klatki", "triceps|Triceps"],
+  d4_3: ["klatka|Góra klatki"],
+  d4_4: ["klatka|Dolny akton klatki"],
+  d4_5: ["barki|Boczny akton barków"],
+  d4_6: ["triceps|Triceps – głowa boczna"],
+  d4_7: ["biceps|Biceps – izolacja"]
+};
+
+function musclesHtml(exId) {
+  const list = MUSCLES[exId];
+  if (!list) return "";
+  return '<div class="tags">' + list.map((t, i) => {
+    const [g, label] = t.split("|");
+    return `<span class="tag ${i === 0 ? "main" : ""}" style="--c:${MUSCLE_COLORS[g]}">${label}</span>`;
+  }).join("") + "</div>";
+}
+
+let state = {
+  cycle: 1,
+  week: 1,
+  day: 1,
+  logs: {},      // key: c{cycle}_w{week}_{exId}_s{set} -> { w, r, done }
+  swaps: {},     // key: {exId} -> customName
+  openTips: {},
+  completedDays: {},
+  preferences: { theme: "dark", accent: "#3b82f6" },
+  backupReminderAt: 0
+};
+
+let timerSec = 0;
+let timerInterval = null;
+let timerEndsAt = null;
+let timerPaused = false;
+let warmupVisible = {};
+
+
+function applyPreferences() {
+  const prefs = state.preferences || (state.preferences = {theme:"dark", accent:"#3b82f6"});
+  document.body.classList.toggle("light", prefs.theme === "light");
+  document.documentElement.style.setProperty("--accent", prefs.accent || "#3b82f6");
+  const theme = document.getElementById("themeSelect");
+  const accent = document.getElementById("accentPicker");
+  if (theme) theme.value = prefs.theme || "dark";
+  if (accent) accent.value = prefs.accent || "#3b82f6";
+}
+function setTheme(theme) {
+  state.preferences = state.preferences || {};
+  state.preferences.theme = theme === "light" ? "light" : "dark";
+  applyPreferences(); saveState();
+}
+function setAccent(color) {
+  if (!/^#[0-9a-f]{6}$/i.test(color)) return;
+  state.preferences = state.preferences || {};
+  state.preferences.accent = color;
+  applyPreferences(); saveState();
+}
+function toggleWarmup(exId) {
+  warmupVisible[exId] = !warmupVisible[exId];
+  render();
+}
+function bestEstimated1RM(exId, excludedKey) {
+  let best = 0;
+  for (const [key, d] of Object.entries(state.logs || {})) {
+    if (key === excludedKey || !key.includes("_" + exId + "_s")) continue;
+    const w = parseFloat(d.w), r = parseInt(d.r, 10);
+    if (w > 0 && r > 0) best = Math.max(best, w * (1 + r / 30));
+  }
+  return best;
+}
+function historySvg(points) {
+  const width=300, height=105, pad=18;
+  const vals=points.map(p=>p.best), min=Math.min(...vals), max=Math.max(...vals);
+  const span=Math.max(1,max-min);
+  const coords=points.map((p,i)=>({x:pad+(points.length===1?0:i*(width-2*pad)/(points.length-1)),y:height-pad-((p.best-min)/span)*(height-2*pad)}));
+  const path=coords.map((p,i)=>(i?'L':'M')+p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ');
+  return `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Wykres historii szacowanego 1RM" style="width:100%;height:auto;max-height:130px"><path d="${path}" fill="none" stroke="var(--accent)" stroke-width="3"/>${coords.map((p,i)=>`<circle cx="${p.x}" cy="${p.y}" r="3.5" fill="var(--accent)"/><text x="${p.x}" y="${height-2}" fill="var(--muted)" font-size="9" text-anchor="middle">T${points[i].w}</text>`).join('')}</svg>`;
+}
+function renderActivity() {
+  const host=document.getElementById('activityStats'); if(!host) return;
+  const days=Object.entries(state.completedDays||{}).filter(([k])=>k.startsWith(state.cycle+'_')).map(([k,v])=>({key:k,date:v}));
+  const recent=days.slice(-28);
+  const count=days.length;
+  host.innerHTML=`<div style="font-size:12px;color:var(--muted);margin-bottom:8px">Ukończone dni w cyklu: <b style="color:var(--text)">${count}</b></div><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px">${Array.from({length:28},(_,i)=>{const d=new Date();d.setDate(d.getDate()-(27-i));const key=d.toISOString().slice(0,10);const hit=recent.some(x=>x.date===key);return `<div title="${key}" style="height:20px;border-radius:4px;background:${hit?'var(--green)':'var(--card-border)'}"></div>`}).join('')}</div>`;
+}
+function renderMuscleVolume() {
+  const host=document.getElementById('muscleVolume'); if(!host) return;
+  const totals={};
+  for (const d of Object.values(PLAN)) for (const ex of d) {
+    const tags=MUSCLES[ex.id]||[]; if(!tags.length) continue;
+    let ton=0;
+    for(let w=1;w<=7;w++) for(let set=1;set<=ex.sets;set++) { const q=state.logs[logKey(state.cycle,w,ex.id,set)]; if(q){const wt=parseFloat(q.w), reps=parseInt(q.r,10);if(wt>0&&reps>0)ton+=wt*reps;} }
+    const primary=tags[0].split('|')[0]; totals[primary]=(totals[primary]||0)+ton;
+  }
+  const max=Math.max(1,...Object.values(totals));
+  const names={klatka:'Klatka',barki:'Barki',triceps:'Triceps',biceps:'Biceps',plecy:'Plecy',nogi:'Nogi'};
+  host.innerHTML=Object.keys(MUSCLE_COLORS).map(g=>`<div style="display:flex;align-items:center;gap:8px;margin:7px 0;font-size:12px"><span style="width:62px;color:var(--muted)">${names[g]}</span><div class="muscle-track" style="flex:1"><div class="muscle-fill" style="width:${Math.round((totals[g]||0)/max*100)}%;background:${MUSCLE_COLORS[g]}"></div></div><b style="min-width:55px;text-align:right">${Math.round(totals[g]||0).toLocaleString('pl-PL')} kg</b></div>`).join('');
+}
+function celebrate() {
+  const host=document.getElementById('topBanners');
+  if(!host) return;
+  const msg=document.createElement('div'); msg.className='banner'; msg.textContent='🎉 Świetna robota! Wszystkie serie na dziś wykonane.';
+  host.prepend(msg); setTimeout(()=>msg.remove(),4500);
+}
+
+function loadState() {
+  try {
+    const savedV6 = localStorage.getItem("gymLog_v6");
+    if (savedV6) {
+      state = Object.assign(state, JSON.parse(savedV6));
+    } else {
+      // Migracja ze starszych wersji jeśli istniały
+      const old = localStorage.getItem("gymLog_v5") || localStorage.getItem("gymLog_v4") || localStorage.getItem("gymLog_v3");
+      if (old) {
+        const parsed = JSON.parse(old);
+        if (parsed.logs) state.logs = parsed.logs;
+        if (parsed.cycle) state.cycle = parsed.cycle;
+      }
+    }
+  } catch (e) {}
+  document.getElementById("weekSelect").value = state.week;
+  document.getElementById("cycleBadge").textContent = "Cykl " + state.cycle;
+  applyPreferences();
+}
+
+function saveState() {
+  try {
+    localStorage.setItem("gymLog_v6", JSON.stringify(state));
+  } catch (e) {}
+}
+
+function changeWeek() {
+  state.week = parseInt(document.getElementById("weekSelect").value, 10);
+  saveState();
+  render();
+}
+
+function selectDay(d) {
+  state.day = d;
+  saveState();
+  render();
+}
+
+function getEffectiveSets(baseSets) {
+  return state.week === 7 ? Math.max(1, baseSets - 1) : baseSets;
+}
+
+function logKey(c, w, exId, s) {
+  return `c${c}_w${w}_${exId}_s${s}`;
+}
+
+function updateInput(exId, s, field, val) {
+  const k = logKey(state.cycle, state.week, exId, s);
+  if (!state.logs[k]) state.logs[k] = { w: "", r: "", done: false };
+  state.logs[k][field] = val;
+  saveState();
+  updateStats();
+}
+
+function toggleDone(exId, s, restSec) {
+  const k = logKey(state.cycle, state.week, exId, s);
+  if (!state.logs[k]) state.logs[k] = { w: "", r: "", done: false };
+  state.logs[k].done = !state.logs[k].done;
+  saveState();
+  if (state.logs[k].done) {
+    startTimer(restSec);
+  }
+  const dayDone = PLAN[state.day].every(ex => {
+    const n = getEffectiveSets(ex.sets);
+    return Array.from({length:n}, (_,i) => state.logs[logKey(state.cycle,state.week,ex.id,i+1)]).every(x => x && x.done);
+  });
+  if (dayDone) {
+    state.completedDays[`${state.cycle}_${state.week}_${state.day}`] = new Date().toISOString().slice(0,10);
+    saveState(); celebrate();
+  }
+  render();
+}
+
+function copyDown(exId, s, total) {
+  const src = state.logs[logKey(state.cycle, state.week, exId, s)];
+  if (!src || (src.w === "" && src.r === "")) return;
+  for (let t = s + 1; t <= total; t++) {
+    const k = logKey(state.cycle, state.week, exId, t);
+    if (!state.logs[k]) state.logs[k] = { w: "", r: "", done: false };
+    state.logs[k].w = src.w;
+    state.logs[k].r = src.r;
+  }
+  saveState();
+  render();
+}
+
+function weeklyTonnage() {
+  const t = new Array(8).fill(0);
+  const re = new RegExp("^c" + state.cycle + "_w(\\d+)_");
+  for (const k in state.logs) {
+    const m = k.match(re);
+    if (!m) continue;
+    const w = parseInt(m[1], 10);
+    if (w < 1 || w > 7) continue;
+    const wt = parseFloat(state.logs[k].w);
+    const r = parseInt(state.logs[k].r, 10);
+    if (wt > 0 && r > 0) t[w] += wt * r;
+  }
+  return t;
+}
+
+function fmtTon(v) {
+  if (v <= 0) return "";
+  return v >= 1000 ? (v / 1000).toFixed(1).replace(".", ",") + "t" : String(Math.round(v));
+}
+
+function renderChart() {
+  const t = weeklyTonnage();
+  const max = Math.max(...t.slice(1), 1);
+  let html = '<div class="chart">';
+  for (let w = 1; w <= 7; w++) {
+    const h = t[w] > 0 ? Math.max(4, Math.round((t[w] / max) * 110)) : 2;
+    const cls = (w === 7 ? " deload" : "") + (w === state.week ? " current" : "");
+    html += `<div class="bar-col">
+      <div class="bar-val">${fmtTon(t[w])}</div>
+      <div class="bar${cls}" style="height:${h}px"></div>
+      <div class="bar-lbl${w === state.week ? " current" : ""}">T${w}</div>
+    </div>`;
+  }
+  html += "</div>";
+  document.getElementById("weeklyChart").innerHTML = html;
+  document.getElementById("chartTitle").textContent = "📊 Tonaż tygodniowy – Cykl " + state.cycle;
+
+  let delta = "";
+  const w = state.week;
+  if (w > 1 && t[w] > 0 && t[w - 1] > 0) {
+    const pct = Math.round(((t[w] - t[w - 1]) / t[w - 1]) * 100);
+    delta = `Tydzień ${w} vs ${w - 1}: ${pct >= 0 ? "+" : ""}${pct}%` + (w === 7 ? " (deload – spadek jest zamierzony)" : "");
+  }
+  document.getElementById("chartDelta").textContent = delta;
+}
+
+function toggleTip(exId) {
+  state.openTips[exId] = !state.openTips[exId];
+  render();
+}
+
+function copyPreviousWeek() {
+  if (state.week <= 1) return;
+  const prevW = state.week - 1;
+  const exList = PLAN[state.day];
+  let copied = 0;
+  exList.forEach(ex => {
+    const setsCount = getEffectiveSets(ex.sets);
+    for (let s = 1; s <= setsCount; s++) {
+      const prevData = state.logs[logKey(state.cycle, prevW, ex.id, s)];
+      if (prevData && (prevData.w !== "" || prevData.r !== "")) {
+        const curK = logKey(state.cycle, state.week, ex.id, s);
+        state.logs[curK] = { w: prevData.w, r: prevData.r, done: false };
+        copied++;
+      }
+    }
+  });
+  saveState();
+  render();
+  if (copied === 0) alert("Brak zapisanych wyników w poprzednim tygodniu dla tego dnia.");
+}
+
+function openSwapModal(exId) {
+  const ex = PLAN[state.day].find(x => x.id === exId);
+  if (!ex) return;
+  document.getElementById("modalTitle").textContent = "Zamień ćwiczenie";
+  let html = `<div class="alt-item" onclick="applySwap('${ex.id}', '')">↩️ Oryginał: ${ex.name}</div>`;
+  ex.alts.forEach(alt => {
+    html += `<div class="alt-item" onclick="applySwap('${ex.id}', '${alt.replace(/'/g, "\'")}')">⇄ ${alt}</div>`;
+  });
+  document.getElementById("modalBody").innerHTML = html;
+  document.getElementById("modalBg").classList.add("open");
+}
+
+function applySwap(exId, newName) {
+  if (!newName) {
+    delete state.swaps[exId];
+  } else {
+    state.swaps[exId] = newName;
+  }
+  saveState();
+  closeModal();
+  render();
+}
+
+function openHistoryModal(exId) {
+  const ex = PLAN[state.day].find(x => x.id === exId);
+  if (!ex) return;
+  const displayName = state.swaps[ex.id] || ex.name;
+  document.getElementById("modalTitle").textContent = "📈 Historia: " + displayName;
+  let html = "";
+  const points = [];
+  for (let w = 1; w <= 7; w++) {
+    let best = 0;
+    for (let s = 1; s <= ex.sets; s++) {
+      const q = state.logs[logKey(state.cycle, w, ex.id, s)];
+      if (q) { const ww = parseFloat(q.w), rr = parseInt(q.r,10); if (ww > 0 && rr > 0) best = Math.max(best, ww * (1 + rr/30)); }
+    }
+    if (best) points.push({w, best});
+  }
+  if (points.length) html += `<div style="font-size:12px;color:var(--muted)">Szacowany 1RM (wzór Epleya)</div>${historySvg(points)}`;
+  for (let w = 1; w <= 7; w++) {
+    let rowParts = [];
+    for (let s = 1; s <= ex.sets; s++) {
+      const d = state.logs[logKey(state.cycle, w, ex.id, s)];
+      if (d && (d.w || d.r)) {
+        rowParts.push(`${d.w || 0}kg × ${d.r || 0}`);
+      }
+    }
+    html += `<div class="hist-row">
+      <span style="color:var(--muted); font-weight:600;">Tydzień ${w}${w===7?' (Deload)':''}</span>
+      <span style="font-weight:700;">${rowParts.length ? rowParts.join(" | ") : "—"}</span>
+    </div>`;
+  }
+  document.getElementById("modalBody").innerHTML = html;
+  document.getElementById("modalBg").classList.add("open");
+}
+
+function closeModal() {
+  document.getElementById("modalBg").classList.remove("open");
+}
+
+function render() {
+  for (let d = 1; d <= 4; d++) {
+    document.getElementById("tab" + d).classList.toggle("active", d === state.day);
+  }
+  document.getElementById("cycleBadge").textContent = "Cykl " + state.cycle;
+
+  const banners = document.getElementById("topBanners");
+  let bannerHtml = "";
+  if (state.week === 7) {
+    bannerHtml += `<div class="banner"><span>🧘 <b>Tydzień 7 (Deload):</b> Liczba serii zmniejszona o 1. Obniż ciężary o 10–15% dla pełnej regeneracji.</span></div>`;
+  }
+  if (state.week > 1) {
+    bannerHtml += `<div class="banner" style="background:rgba(59,130,246,0.12); border-color:var(--accent); color:#bfdbfe;">
+      <span>Przepisać ciężary z Tygodnia ${state.week - 1}?</span>
+      <button class="btn-copy-prev" onclick="copyPreviousWeek()">📋 Kopiuj Tydz. ${state.week - 1}</button>
+    </div>`;
+  }
+  banners.innerHTML = bannerHtml;
+
+  const list = document.getElementById("exercisesList");
+  const exList = PLAN[state.day];
+  let html = "";
+
+  exList.forEach((ex, idx) => {
+    const setsCount = getEffectiveSets(ex.sets);
+    const currentName = state.swaps[ex.id] || ex.name;
+    const isSwapped = Boolean(state.swaps[ex.id]);
+    const restMin = Math.floor(ex.rest / 60);
+    const restSec = ex.rest % 60;
+    const restLabel = restSec === 0 ? `${restMin} min` : `${restMin}m ${restSec}s`;
+
+    let prevHtml = "";
+    let readyForProgression = false;
+    let suggestedWeight = "";
+    if (state.week > 1) {
+      const prevW = state.week - 1;
+      let prevParts = [];
+      let allHitMax = true;
+      let hasAnyPrev = false;
+      for (let s = 1; s <= setsCount; s++) {
+        const pd = state.logs[logKey(state.cycle, prevW, ex.id, s)];
+        if (pd && (pd.w !== "" || pd.r !== "")) {
+          hasAnyPrev = true;
+          prevParts.push(`S${s}: ${pd.w || 0}kg×${pd.r || 0}`);
+          if (parseInt(pd.r, 10) < ex.maxR || isNaN(parseInt(pd.r, 10))) {
+            allHitMax = false;
+          }
+        } else {
+          allHitMax = false;
+        }
+      }
+      if (hasAnyPrev) {
+        prevHtml = `<div class="prev-box">Poprzedni tydzień: ${prevParts.join(" | ")}</div>`;
+        if (allHitMax && state.week < 7) {
+          readyForProgression = true;
+          const weights = [];
+          for (let ps = 1; ps <= setsCount; ps++) {
+            const p = state.logs[logKey(state.cycle, prevW, ex.id, ps)];
+            if (p && p.w !== "" && Number.isFinite(parseFloat(p.w))) weights.push(parseFloat(p.w));
+          }
+          if (weights.length) suggestedWeight = (Math.max(...weights) + 2.5).toFixed(1).replace(/\.0$/, "");
+        }
+      }
+    }
+
+    if (readyForProgression && suggestedWeight) {
+      for (let ps = 1; ps <= setsCount; ps++) {
+        const ck = logKey(state.cycle, state.week, ex.id, ps);
+        if (!state.logs[ck] || state.logs[ck].w === "") {
+          if (!state.logs[ck]) state.logs[ck] = {w:"", r:"", done:false};
+          state.logs[ck].w = suggestedWeight;
+        }
+      }
+      saveState();
+    }
+
+    html += `<div class="ex-card">
+      <div class="ex-header">
+        <div class="ex-title-area">
+          <div class="ex-name" onclick="openHistoryModal('${ex.id}')">
+            ${idx + 1}. ${currentName} 📈
+            ${isSwapped ? '<span class="sub-badge">ZAMIENNIK</span>' : ''}
+          </div>
+          ${musclesHtml(ex.id)}
+          <div class="ex-meta" style="margin-top:5px;">${setsCount} serie × ${ex.minR}–${ex.maxR} powt. • Przerwa: ${restLabel}</div>
+        </div>
+        <div class="ex-actions">
+          <button class="icon-btn ${state.openTips[ex.id] ? 'active' : ''}" onclick="toggleTip('${ex.id}')" title="Wskazówka techniczna">?</button>
+          <button class="icon-btn" onclick="openSwapModal('${ex.id}')" title="Zamień ćwiczenie">⇄</button>
+        </div>
+      </div>
+      <div class="tip-box ${state.openTips[ex.id] ? 'show' : ''}">💡 ${ex.tip}</div>
+      ${readyForProgression ? `<div class="prog-alert">🔥 Zamknąłeś widełki (${ex.maxR} powt.)! Podpowiedź: ${suggestedWeight} kg (+2,5 kg).</div>` : ''}
+      ${idx === 0 ? `<button class="btn-sec" onclick="toggleWarmup('${ex.id}', ${idx})">🔥 Rozgrzewka</button>${warmupVisible[ex.id] ? `<div class="warmup-box">Serie rozgrzewkowe (orientacyjnie): 1 × 8 przy 50% oraz 1 × 4–5 przy 75% ciężaru roboczego. Nie doprowadzaj ich do zmęczenia.</div>` : ''}` : ''}
+      ${prevHtml}
+      <div class="ex-body">
+      <table>
+        <thead>
+          <tr><th>Seria</th><th>Ciężar (kg)</th><th>Powtórzenia</th><th title="Kopiuj w dół">↓</th><th>Gotowe</th></tr>
+        </thead>
+        <tbody>`;
+
+    for (let s = 1; s <= setsCount; s++) {
+      const k = logKey(state.cycle, state.week, ex.id, s);
+      const d = state.logs[k] || { w: "", r: "", done: false };
+      const currentW = parseFloat(d.w), currentR = parseInt(d.r, 10);
+      const bestLift = bestEstimated1RM(ex.id, k);
+      const est1rm = currentW > 0 && currentR > 0 ? currentW * (1 + currentR / 30) : 0;
+      const isPR = est1rm > 0 && est1rm > bestLift + 0.001;
+      html += `<tr class="${d.done ? 'set-row-done' : ''}">
+        <td class="set-num">${s}${isPR ? '<span class="pr-badge" title="Rekord szacowanego 1RM">🏆</span>' : ''}</td>
+        <td><input type="number" step="0.5" inputmode="decimal" placeholder="kg" value="${d.w}" oninput="updateInput('${ex.id}', ${s}, 'w', this.value)"></td>
+        <td><input type="number" inputmode="numeric" placeholder="${ex.minR}-${ex.maxR}" value="${d.r}" oninput="updateInput('${ex.id}', ${s}, 'r', this.value)"></td>
+        <td><button class="down-btn" ${s === setsCount ? "disabled" : ""} onclick="copyDown('${ex.id}', ${s}, ${setsCount})" title="Kopiuj ciężar i powtórzenia do kolejnych serii">↓</button></td>
+        <td><button class="check-btn ${d.done ? 'done' : ''}" onclick="toggleDone('${ex.id}', ${s}, ${ex.rest})">✓</button></td>
+      </tr>`;
+    }
+
+    html += `</tbody></table></div></div>`;
+  });
+
+  list.innerHTML = html;
+  updateStats();
+}
+
+function updateStats() {
+  const exList = PLAN[state.day];
+  let totalSets = 0;
+  let doneSets = 0;
+  let tonnage = 0;
+
+  exList.forEach(ex => {
+    const setsCount = getEffectiveSets(ex.sets);
+    for (let s = 1; s <= setsCount; s++) {
+      totalSets++;
+      const d = state.logs[logKey(state.cycle, state.week, ex.id, s)];
+      if (d) {
+        if (d.done) doneSets++;
+        const w = parseFloat(d.w);
+        const r = parseInt(d.r, 10);
+        if (!isNaN(w) && !isNaN(r) && w > 0 && r > 0) {
+          tonnage += w * r;
+        }
+      }
+    }
+  });
+
+  const pct = totalSets > 0 ? Math.round((doneSets / totalSets) * 100) : 0;
+  document.getElementById("progressFill").style.width = pct + "%";
+  document.getElementById("progressText").textContent = pct + "%";
+  document.getElementById("statSets").textContent = `${doneSets} / ${totalSets}`;
+  document.getElementById("statTon").textContent = `${Math.round(tonnage)} kg`;
+  renderChart();
+  renderActivity();
+  renderMuscleVolume();
+}
+
+function startTimer(seconds) {
+  clearInterval(timerInterval);
+  timerSec = Math.max(0, Number(seconds) || 0);
+  timerEndsAt = Date.now() + timerSec * 1000;
+  timerPaused = false;
+  tickTimer();
+  timerInterval = setInterval(tickTimer, 250);
+}
+function tickTimer() {
+  if (timerEndsAt) timerSec = Math.max(0, Math.ceil((timerEndsAt - Date.now()) / 1000));
+  updateTimerDisplay();
+  if (timerSec <= 0 && timerEndsAt) {
+    clearInterval(timerInterval); timerInterval = null; timerEndsAt = null;
+    document.getElementById("timerDisplay").classList.remove("running");
+    document.getElementById("pauseBtn").textContent = "Start";
+    if (navigator.vibrate) navigator.vibrate([300,150,300]);
+  }
+}
+function adjustTimer(delta) {
+  if (timerEndsAt) timerEndsAt += delta * 1000;
+  timerSec = Math.max(0, timerSec + delta);
+  if (timerEndsAt && timerSec <= 0) { clearInterval(timerInterval); timerInterval=null; timerEndsAt=null; }
+  updateTimerDisplay();
+}
+
+function toggleTimer() {
+  if (timerEndsAt) {
+    timerSec = Math.max(0, Math.ceil((timerEndsAt - Date.now())/1000));
+    clearInterval(timerInterval); timerInterval = null; timerEndsAt = null; timerPaused = true;
+    document.getElementById("timerDisplay").classList.remove("running");
+    document.getElementById("pauseBtn").textContent = "Wznów";
+    updateTimerDisplay();
+  } else if (timerSec > 0) {
+    startTimer(timerSec);
+    document.getElementById("timerDisplay").classList.add("running");
+    document.getElementById("pauseBtn").textContent = "Pauza";
+  }
+}
+
+function resetTimer() {
+  clearInterval(timerInterval);
+  timerInterval = null;
+  timerSec = 0;
+  timerEndsAt = null;
+  document.getElementById("timerDisplay").classList.remove("running");
+  document.getElementById("pauseBtn").textContent = "Start";
+  updateTimerDisplay();
+}
+
+function updateTimerDisplay() {
+  const m = String(Math.floor(timerSec / 60)).padStart(2, "0");
+  const s = String(timerSec % 60).padStart(2, "0");
+  document.getElementById("timerDisplay").textContent = `${m}:${s}`;
+}
+
+function copyDaySummary() {
+  const exList = PLAN[state.day];
+  let lines = [`🏋️ Trening – Cykl ${state.cycle}, Tydzień ${state.week}, Dzień ${state.day}`];
+  let tonnage = 0;
+
+  exList.forEach((ex, i) => {
+    const setsCount = getEffectiveSets(ex.sets);
+    const name = state.swaps[ex.id] || ex.name;
+    let sParts = [];
+    for (let s = 1; s <= setsCount; s++) {
+      const d = state.logs[logKey(state.cycle, state.week, ex.id, s)];
+      if (d && (d.w || d.r)) {
+        sParts.push(`${d.w || 0}kg×${d.r || 0}`);
+        const w = parseFloat(d.w);
+        const r = parseInt(d.r, 10);
+        if (!isNaN(w) && !isNaN(r)) tonnage += w * r;
+      }
+    }
+    if (sParts.length) {
+      lines.push(`${i + 1}. ${name}: ${sParts.join(", ")}`);
+    }
+  });
+  lines.push(`📊 Łączny tonaż: ${Math.round(tonnage)} kg`);
+  const text = lines.join("\n");
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => alert("Skopiowano podsumowanie treningu do schowka!"));
+  } else {
+    prompt("Skopiuj podsumowanie ręcznie:", text);
+  }
+}
+
+function exportBackup() {
+  const dataStr = JSON.stringify(state, null, 2);
+  const blob = new Blob([dataStr], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `Dziennik_Treningowy_Kopia_Cykl${state.cycle}_Tydz${state.week}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importBackup(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (imported && imported.logs) {
+        state = Object.assign(state, imported);
+        saveState();
+        document.getElementById("weekSelect").value = state.week;
+        render();
+        alert("Kopia zapasowa została pomyślnie wczytana!");
+      }
+    } catch (err) {
+      alert("Nieprawidłowy plik kopii zapasowej.");
+    }
+  };
+  reader.readAsText(file);
+}
+
+function startNewCycle() {
+  if (!confirm("Czy na pewno chcesz rozpocząć nowy cykl? Wyniki z Tygodnia 6 zostaną skopiowane jako punkt startowy dla Tygodnia 1 nowego cyklu.")) return;
+  const oldCycle = state.cycle;
+  const newCycle = oldCycle + 1;
+  for (let d = 1; d <= 4; d++) {
+    PLAN[d].forEach(ex => {
+      for (let s = 1; s <= ex.sets; s++) {
+        const w6 = state.logs[logKey(oldCycle, 6, ex.id, s)];
+        if (w6 && (w6.w !== "" || w6.r !== "")) {
+          state.logs[logKey(newCycle, 1, ex.id, s)] = { w: w6.w, r: w6.r, done: false };
+        }
+      }
+    });
+  }
+  state.cycle = newCycle;
+  state.week = 1;
+  document.getElementById("weekSelect").value = 1;
+  saveState();
+  render();
+  alert(`Rozpoczęto Cykl ${newCycle}! Twoje wyniki z 6. tygodnia są już wpisane w Tygodniu 1.`);
+}
+
+loadState();
+render();
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(err => console.warn('Service worker:', err)));
+}
+</script>
+</body>
+</html>
