@@ -72,6 +72,7 @@
   .timer-time { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; color: #fff; }
   .timer-time.running { color: var(--green); }
   .timer-btns { display: flex; gap: 6px; }
+  .t-btn.off { opacity: 0.55; }
   .t-btn { background: var(--card); border: 1px solid var(--card-border); color: #fff; padding: 7px 10px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; }
   .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.75); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 100; }
   .modal-bg.open { display: flex; }
@@ -131,11 +132,21 @@
   /* tryb aplikacji */
   html { background: #020617; -webkit-text-size-adjust: 100%; }
   body { overscroll-behavior-y: none; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; }
-  input { -webkit-user-select: text; user-select: text; }
+  input, textarea { -webkit-user-select: text; user-select: text; }
   header { padding-top: calc(14px + env(safe-area-inset-top, 0px)); }
   .timer-bar { padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px)); }
   body { padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px)); }
   @media (display-mode: standalone) { body { min-height: 100vh; } }
+  .warmup-box h4 { font-size: 13px; margin-bottom: 2px; }
+  .warmup-box .wu-time { color: var(--muted); margin-bottom: 6px; }
+  .warmup-box ul { list-style: none; margin: 4px 0 8px; }
+  .warmup-box li { padding: 4px 0; border-bottom: 1px solid rgba(148,163,184,.18); display: flex; justify-content: space-between; gap: 10px; }
+  .warmup-box li span:last-child { color: var(--muted); white-space: nowrap; font-weight: 700; }
+  .warmup-box .wu-sub { font-weight: 700; margin-top: 6px; }
+  .note-box { width: 100%; min-height: 64px; margin: 8px 0 0; background: #0f172a; color: var(--text); border: 1px solid var(--card-border); border-radius: 8px; padding: 8px 10px; font-size: 13px; resize: vertical; }
+  .note-box:focus { outline: none; border-color: var(--accent); }
+  .note-preview { margin-top: 8px; font-size: 12px; color: #cbd5e1; background: #0f172a; border-left: 3px solid var(--orange); border-radius: 6px; padding: 6px 10px; white-space: pre-wrap; cursor: pointer; }
+  body.light .note-box { background: #f8fafc; color: #0f172a; }
 </style>
 <meta name="theme-color" content="#0f172a">
 <link rel="manifest" href="manifest.webmanifest">
@@ -225,8 +236,7 @@
     <div class="timer-time" id="timerDisplay">00:00</div>
   </div>
   <div class="timer-btns">
-    <button class="t-btn" onclick="adjustTimer(-15)">-15s</button>
-    <button class="t-btn" onclick="adjustTimer(15)">+15s</button>
+    <button class="t-btn" onclick="toggleSound()" id="soundBtn" aria-label="Dźwięk timera">🔊</button>
     <button class="t-btn" onclick="toggleTimer()" id="pauseBtn">Start</button>
     <button class="t-btn" onclick="resetTimer()">Reset</button>
   </div>
@@ -255,24 +265,25 @@ const PLAN = {
     { id: "d1_8", name: "Wyprosty ramion zza głowy", sets: 2, minR: 10, maxR: 12, rest: 90, tip: "Utrzymuj łokcie skierowane w górę, opuszczaj ciężar głęboko za głowę dla rozciągnięcia głowy długiej.", alts: ["Wyciskanie francuskie leżąc ze sztangą łamaną", "Wyprosty z liną zza głowy na wyciągu"] }
   ],
   2: [
-    { id: "d2_1", name: "Uginanie nóg na maszynie", sets: 2, minR: 10, maxR: 12, rest: 120, tip: "Dociśnij biodra do siedziska/ławki. Kontroluj powolny powrót ciężaru.", alts: ["Uginanie nóg leżąc na maszynie", "Uginanie nóg siedząc na maszynie"] },
+    { id: "d2_1", name: "Uginanie nóg na maszynie (leżąc lub siedząc)", sets: 3, minR: 10, maxR: 12, rest: 120, tip: "Dociśnij biodra do siedziska/ławki. Kontroluj powolny powrót ciężaru.", alts: ["Uginanie nóg leżąc na maszynie", "Uginanie nóg siedząc na maszynie"] },
     { id: "d2_2", name: "Back squat", sets: 3, minR: 6, maxR: 8, rest: 180, tip: "Nabierz powietrze do brzucha (bracing), kolana idą w linii palców stóp, zejdź poniżej kąta prostego.", alts: ["Przysiad na suwnicy Smitha", "Hack Squat (maszyna)", "Przysiad przedni (Front Squat)"] },
-    { id: "d2_3", name: "Romanian deadlift (RDL)", sets: 3, minR: 8, maxR: 10, rest: 150, tip: "Minimalnie ugięte kolana, wypychaj biodra maksymalnie w tył przy prostych plecach do poczucia rozciągania dwugłowych.", alts: ["Martwy ciąg na prostych nogach z hantlami", "Dzień dobry (Good Morning) ze sztangą"] },
     { id: "d2_4", name: "Suwnica", sets: 3, minR: 10, maxR: 12, rest: 150, tip: "Nie odrywaj dolnego odcinka pleców od oparcia w dolnej fazie ruchu, nie blokuj kolan na górze.", alts: ["Wykroki chodzone z hantlami", "Przysiad bułgarski z hantlami"] },
+    { id: "d2_8", name: "Wyprosty nóg siedząc na maszynie (Leg Extension)", sets: 3, minR: 12, maxR: 15, rest: 90, tip: "Pełny wyprost z krótkim spięciem na górze, powolne opuszczanie ciężaru.", alts: ["Wyprosty nóg jednonóż na maszynie", "Sissy squat"] },
+    { id: "d2_3", name: "Romanian deadlift (RDL)", sets: 3, minR: 8, maxR: 10, rest: 165, tip: "Minimalnie ugięte kolana, wypychaj biodra maksymalnie w tył przy prostych plecach do poczucia rozciągania dwugłowych.", alts: ["Martwy ciąg na prostych nogach z hantlami", "Dzień dobry (Good Morning) ze sztangą"] },
     { id: "d2_5", name: "Przywodziciel", sets: 2, minR: 12, maxR: 15, rest: 90, tip: "Płynny ruch bez szarpania, przytrzymaj pełne złączenie nóg przez 1 sekundę.", alts: ["Przysiad Sumo z hantlem", "Przywodzenie nogi z linką wyciągu dolnego"] },
     { id: "d2_6", name: "Odwodziciel", sets: 2, minR: 12, maxR: 15, rest: 90, tip: "Pochyl tułów lekko w przód, aby mocniej zaangażować pośladkowy średni i mały.", alts: ["Odwodzenie nogi w tył/bok na wyciągu dolnym", "Spacer z gumą mini-band nad kolanami"] },
     { id: "d2_7", name: "Wspięcia na palce stojąc / siedząc", sets: 4, minR: 10, maxR: 15, rest: 90, tip: "Pełne rozciągnięcie pięty na dole (pauza 1 sek) i maksymalne wspięcie na palce na górze.", alts: ["Wspięcia na palce na suwnicy", "Ośle wspięcia na maszynie"] }
   ],
   3: [
-    { id: "d3_1", name: "Podciąganie szerokim chwytem", sets: 3, minR: 6, maxR: 10, rest: 150, tip: "Zacznij ruch od ściągnięcia łopatek w dół, prowadź klatkę piersiową w stronę drążka.", alts: ["Ściąganie drążka wyciągu górnego szerokim chwytem", "Podciąganie na maszynie ze wspomaganiem"] },
+    { id: "d3_1", name: "Podciąganie szerokim chwytem", sets: 3, minR: 6, maxR: 10, rest: 165, tip: "Zacznij ruch od ściągnięcia łopatek w dół, prowadź klatkę piersiową w stronę drążka.", alts: ["Ściąganie drążka wyciągu górnego szerokim chwytem", "Podciąganie na maszynie ze wspomaganiem"] },
     { id: "d3_2", name: "Wiosłowanie końcem sztangi", sets: 3, minR: 8, maxR: 10, rest: 120, tip: "Plecy proste, tułów pochylony ok. 45 stopni. Przyciągaj ciężar w stronę dolnej części mostka.", alts: ["Wiosłowanie sztangą w opadzie tułowia", "Wiosłowanie na maszynie (T-Bar Row)"] },
-    { id: "d3_3", name: "Wiosłowanie hantlem (szeroki łokieć)", sets: 2, minR: 10, maxR: 12, rest: 120, tip: "Oprzyj jedną rękę o ławkę, prowadź łokieć szerzej od tułowia, celując w górę pleców i czworoboczny.", alts: ["Wiosłowanie siedząc na wyciągu dolnym szerokim drążkiem", "Wiosłowanie hantlami leżąc na ławce skośnej"] },
+    { id: "d3_3", name: "Wiosłowanie hantlem w oparciu o ławkę (szeroki łokieć)", sets: 2, minR: 10, maxR: 12, rest: 120, tip: "Oprzyj jedną rękę o ławkę, prowadź łokieć szerzej od tułowia, celując w górę pleców i czworoboczny.", alts: ["Wiosłowanie siedząc na wyciągu dolnym szerokim drążkiem", "Wiosłowanie hantlami leżąc na ławce skośnej"] },
     { id: "d3_4", name: "Przyciąganie haka do klatki", sets: 3, minR: 10, maxR: 12, rest: 120, tip: "Prowadź łokcie blisko ciała w kierunku bioder, aby maksymalnie izolować najszerszy grzbietu.", alts: ["Ściąganie uchwytu neutralnego (V-bar) do klatki", "Wiosłowanie jednorącz na maszynie Hammer"] },
-    { id: "d3_5", name: "Narciarz (wyciąg górny)", sets: 2, minR: 12, maxR: 15, rest: 90, tip: "Ręce niemal proste w łokciach, ściągaj drążek/linę po łuku aż do ud, mocno napinając najszerszy.", alts: ["Przenoszenie hantla za głowę leżąc na ławce", "Pullover na maszynie"] },
+    { id: "d3_5", name: "Narciarz (ściąganie drążka wyciągu górnego na prostych rękach)", sets: 2, minR: 12, maxR: 15, rest: 90, tip: "Ręce niemal proste w łokciach, ściągaj drążek/linę po łuku aż do ud, mocno napinając najszerszy.", alts: ["Przenoszenie hantla za głowę leżąc na ławce", "Pullover na maszynie"] },
     { id: "d3_6", name: "Facepull stojąc", sets: 3, minR: 12, maxR: 15, rest: 90, tip: "Przyciągaj linę w stronę czoła/uszu, jednocześnie rotując dłonie na zewnątrz (kciuki w tył).", alts: ["Odwrotne rozpiętki na maszynie", "Odwrotne rozpiętki z hantlami w opadzie"] },
     { id: "d3_7", name: "Szrugsy z hantlami stojąc", sets: 3, minR: 10, maxR: 12, rest: 90, tip: "Unoszenie barków pionowo w górę (w stronę uszu), bez krążenia barkami. Pauza 1 sek na górze.", alts: ["Szrugsy ze sztangą z przodu", "Szrugsy na maszynie Smitha"] },
     { id: "d3_8", name: "Uginanie ramion ze sztangą łamaną (EZ)", sets: 3, minR: 8, maxR: 12, rest: 90, tip: "Łokcie stabilnie wzdłuż tułowia, pełne rozciągnięcie na dole bez kołysania plecami.", alts: ["Uginanie ramion ze sztangą prostą", "Uginanie ramion na wyciągu dolnym z drążkiem"] },
-    { id: "d3_9", name: "Uginanie ramion nachwytem", sets: 2, minR: 12, maxR: 15, rest: 75, tip: "Chwyt od góry (kciuki skierowane do siebie), celuje w mięsień ramienno-promieniowy i przedramię.", alts: ["Uginanie młotkowe z hantlami", "Uginanie nadgarstków ze sztangą"] }
+    { id: "d3_10", name: "Uginanie ramion z hantlami chwytem młotkowym", sets: 2, minR: 10, maxR: 12, rest: 75, tip: "Chwyt neutralny (kciuki do góry), łokcie nieruchomo przy tułowiu, kontrolowany ruch bez bujania.", alts: ["Uginanie młotkowe na linie wyciągu dolnego", "Uginanie ramion nachwytem"] }
   ],
   4: [
     { id: "d4_1", name: "Wyciskanie hantlami siedząc", sets: 3, minR: 8, maxR: 10, rest: 150, tip: "Oparcie ławki ustaw na ok. 75–80 stopni (nie idealnie pionowo). Łokcie lekko przed linią barków.", alts: ["Wyciskanie żołnierskie sztangą stojąc (OHP)", "Wyciskanie na maszynie na barki (Shoulder Press)"] },
@@ -281,7 +292,8 @@ const PLAN = {
     { id: "d4_4", name: "Rozpiętki na bramie z góry", sets: 2, minR: 12, maxR: 15, rest: 90, tip: "Zrób krok do przodu, pochyl lekko tułów i ściągaj linki w dół przed biodra (dolny akton klatki).", alts: ["Dipy na poręczach z pochyleniem tułowia", "Rozpiętki na maszynie Butterfly"] },
     { id: "d4_5", name: "Wznosy na boki z hantlami lub na wyciągu", sets: 4, minR: 12, maxR: 15, rest: 90, tip: "Wyciąg dolny daje stałe napięcie w całym zakresie – prowadź linkę za plecami lub przed sobą.", alts: ["Wznosy na boki z hantlami siedząc", "Wznosy na boki na maszynie"] },
     { id: "d4_6", name: "Prostowanie ramion z liną na wyciągu", sets: 2, minR: 12, maxR: 15, rest: 90, tip: "W dolnej fazie ruchu rozchyl końcówki liny na boki, aby maksymalnie dopiąć boczną głowę tricepsa.", alts: ["Wyprosty ramion z drążkiem na wyciągu", "Wyciskanie francuskie hantlami leżąc"] },
-    { id: "d4_7", name: "Uginanie ramion z hantlami o kolano", sets: 3, minR: 10, maxR: 12, rest: 90, tip: "Oprzyj tył ramienia stabilnie o wewnętrzną stronę uda – zero oszukiwania ciałem, czysta izolacja.", alts: ["Uginanie ramion na modlitewniku", "Uginanie ramion z hantlami na ławce skośnej"] }
+    { id: "d4_7", name: "Uginanie ramion z hantlami w oparciu o kolano", sets: 3, minR: 10, maxR: 12, rest: 90, tip: "Oprzyj tył ramienia stabilnie o wewnętrzną stronę uda – zero oszukiwania ciałem, czysta izolacja.", alts: ["Uginanie ramion na modlitewniku", "Uginanie ramion z hantlami na ławce skośnej"] },
+    { id: "d4_8", name: "Wspięcia na palce stojąc / siedząc", sets: 4, minR: 12, maxR: 15, rest: 90, tip: "Pełne rozciągnięcie pięty na dole (pauza 1 sek) i maksymalne wspięcie na palce na górze.", alts: ["Wspięcia na palce na suwnicy", "Ośle wspięcia na maszynie"] }
   ]
 };
 
@@ -303,6 +315,7 @@ const MUSCLES = {
   d2_5: ["nogi|Przywodziciele"],
   d2_6: ["nogi|Pośladkowy średni"],
   d2_7: ["nogi|Łydki"],
+  d2_8: ["nogi|Czworogłowy uda"],
   d3_1: ["plecy|Najszerszy grzbietu", "biceps|Biceps"],
   d3_2: ["plecy|Środek pleców", "plecy|Najszerszy grzbietu"],
   d3_3: ["plecy|Górne plecy", "plecy|Czworoboczny"],
@@ -311,14 +324,15 @@ const MUSCLES = {
   d3_6: ["barki|Tylny akton barków", "plecy|Mięśnie rotatorów"],
   d3_7: ["plecy|Czworoboczny (kaptury)"],
   d3_8: ["biceps|Biceps"],
-  d3_9: ["biceps|Ramienno-promieniowy", "biceps|Przedramię"],
+  d3_10: ["biceps|Ramienno-promieniowy", "biceps|Biceps"],
   d4_1: ["barki|Przedni akton barków", "barki|Boczny akton barków"],
   d4_2: ["klatka|Środek klatki", "triceps|Triceps"],
   d4_3: ["klatka|Góra klatki"],
   d4_4: ["klatka|Dolny akton klatki"],
   d4_5: ["barki|Boczny akton barków"],
   d4_6: ["triceps|Triceps – głowa boczna"],
-  d4_7: ["biceps|Biceps – izolacja"]
+  d4_7: ["biceps|Biceps – izolacja"],
+  d4_8: ["nogi|Łydki"]
 };
 
 function musclesHtml(exId) {
@@ -337,6 +351,7 @@ let state = {
   logs: {},      // key: c{cycle}_w{week}_{exId}_s{set} -> { w, r, done }
   swaps: {},     // key: {exId} -> customName
   openTips: {},
+  notes: {},     // exId -> notatka (ustawienie maszyny itp.)
   completedDays: {},
   preferences: { theme: "dark", accent: "#3b82f6" },
   backupReminderAt: 0
@@ -346,6 +361,7 @@ let timerSec = 0;
 let timerInterval = null;
 let timerEndsAt = null;
 let timerPaused = false;
+let audioCtx = null;
 let warmupVisible = {};
 
 
@@ -357,6 +373,7 @@ function applyPreferences() {
   const accent = document.getElementById("accentPicker");
   if (theme) theme.value = prefs.theme || "dark";
   if (accent) accent.value = prefs.accent || "#3b82f6";
+  updateSoundBtn();
 }
 function setTheme(theme) {
   state.preferences = state.preferences || {};
@@ -369,6 +386,83 @@ function setAccent(color) {
   state.preferences.accent = color;
   applyPreferences(); saveState();
 }
+// ===== Notatki do ćwiczeń =====
+let openNotes = {};
+function escHtml(t) { return String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function toggleNote(exId) { openNotes[exId] = !openNotes[exId]; render(); if (openNotes[exId]) { const el = document.getElementById('note_' + exId); if (el) el.focus(); } }
+function saveNote(exId, val) {
+  state.notes = state.notes || {};
+  if (val.trim()) state.notes[exId] = val; else delete state.notes[exId];
+  saveState();
+}
+
+// ===== Rozgrzewka dopasowana do dnia =====
+const WARMUP = {
+  1: { title: "Dzień 1 – Klatka / Barki / Triceps", time: "ok. 8–10 min", steps: [
+    ["Lekkie cardio (rower, orbitrek, wioślarz)", "4–5 min"],
+    ["Krążenia ramion w przód i w tył", "2 × 10"],
+    ["Rotacje klatki piersiowej leżąc na boku (open book)", "1 × 8 / stronę"],
+    ["Rotacja zewnętrzna barku z gumą lub lekką hantlą", "2 × 12 / stronę"],
+    ["Pull-apart z gumą (rozciąganie gumy na boki)", "2 × 15"],
+    ["Pompki z łopatkami (ruch tylko łopatkami)", "1 × 10"]
+  ], ramp: { id: "d1_1", name: "Wyciskanie sztangi", unit: "kg", step: 2.5, base: "Zaczynasz od pustej sztangi: 1 × 10" } },
+  2: { title: "Dzień 2 – Nogi", time: "ok. 8–10 min", steps: [
+    ["Rower lub bieżnia, lekkie tempo", "4–5 min"],
+    ["Wymachy nogą przód–tył i na boki", "1 × 10 / nogę"],
+    ["Most biodrowy (pośladki)", "2 × 12"],
+    ["Przysiad z masą ciała, pauza 2 s na dole", "2 × 10"],
+    ["Hip hinge (skłon z prostymi plecami, ręce na biodrach)", "1 × 10"],
+    ["Spacer boczny z gumą mini-band nad kolanami", "1 × 10 kroków / stronę"],
+    ["Lekka seria uginania nóg na maszynie (ok. 50% ciężaru)", "1 × 12"]
+  ], ramp: { id: "d2_2", name: "Back squat", unit: "kg", step: 2.5, base: "Zaczynasz od pustej sztangi: 1 × 10" } },
+  3: { title: "Dzień 3 – Plecy / Biceps", time: "ok. 8–10 min", steps: [
+    ["Wioślarz lub orbitrek, lekkie tempo", "4–5 min"],
+    ["Cat-cow (wygięcie i wypchnięcie pleców na czworakach)", "1 × 10"],
+    ["Zwis na drążku, rozluźnione barki", "2 × 20 s"],
+    ["Ściąganie łopatek na drążku (scap pull-up)", "2 × 8"],
+    ["Face pull z gumą lub lekki na wyciągu", "2 × 15"],
+    ["Pull-apart z gumą", "2 × 15"],
+    ["Lekkie uginanie ramion (rozgrzanie łokci i bicepsa)", "1 × 12"]
+  ], ramp: { id: "d3_2", name: "Wiosłowanie końcem sztangi", unit: "kg", step: 2.5, base: "Przed podciąganiem zrób 1 × 4–5 z gumą lub łatwiejszą wersją. Przed wiosłowaniem: pusta sztanga 1 × 10" } },
+  4: { title: "Dzień 4 – Barki / Klatka / Ramiona", time: "ok. 8–10 min", steps: [
+    ["Lekkie cardio (rower, orbitrek)", "4–5 min"],
+    ["Krążenia ramion i wyprosty rąk w bok z rotacją", "2 × 10"],
+    ["Rotacja zewnętrzna barku z gumą lub lekką hantlą", "2 × 12 / stronę"],
+    ["Pull-apart z gumą", "2 × 15"],
+    ["Pompki z łopatkami", "1 × 10"],
+    ["Wznosy na boki z bardzo lekkimi hantlami", "1 × 15"]
+  ], ramp: { id: "d4_1", name: "Wyciskanie hantlami siedząc", unit: "kg / hantel", step: 1, base: "Zaczynasz od bardzo lekkich hantli: 1 × 10" } }
+};
+
+function workingWeight(exId) {
+  // ciężar roboczy: seria 1 z bieżącego tygodnia, a jeśli pusta – z najnowszego wcześniejszego tygodnia
+  for (let w = state.week; w >= 1; w--) {
+    const d = state.logs[logKey(state.cycle, w, exId, 1)];
+    const v = d ? parseFloat(d.w) : NaN;
+    if (v > 0) return v;
+  }
+  return 0;
+}
+function roundTo(v, step) { return Math.max(step, Math.round(v / step) * step); }
+function fmtKg(v) { return String(Math.round(v * 10) / 10).replace(".", ","); }
+
+function warmupHtml(day) {
+  const wu = WARMUP[day];
+  if (!wu) return "";
+  const r = wu.ramp;
+  const work = workingWeight(r.id);
+  let ramp = `<div class="wu-sub">Serie dochodzeniowe – ${escHtml(r.name)}</div><div>${escHtml(r.base)}.`;
+  if (work > 0) {
+    ramp += ` Potem 1 × 8 przy <b>${fmtKg(roundTo(work * 0.5, r.step))} ${r.unit}</b> (50%) i 1 × 4–5 przy <b>${fmtKg(roundTo(work * 0.75, r.step))} ${r.unit}</b> (75%) ciężaru roboczego (${fmtKg(work)}).`;
+  } else {
+    ramp += ` Potem 1 × 8 przy 50% i 1 × 4–5 przy 75% ciężaru roboczego (wpisz ciężar w serii 1, a policzę kilogramy).`;
+  }
+  ramp += ` Nie doprowadzaj ich do zmęczenia.</div>`;
+  return `<div class="warmup-box"><h4>🔥 ${escHtml(wu.title)}</h4><div class="wu-time">Czas: ${wu.time}</div><ul>${
+    wu.steps.map(([n, d]) => `<li><span>${escHtml(n)}</span><span>${d}</span></li>`).join("")
+  }</ul>${ramp}</div>`;
+}
+
 function toggleWarmup(exId) {
   warmupVisible[exId] = !warmupVisible[exId];
   render();
@@ -723,12 +817,14 @@ function render() {
         </div>
         <div class="ex-actions">
           <button class="icon-btn ${state.openTips[ex.id] ? 'active' : ''}" onclick="toggleTip('${ex.id}')" title="Wskazówka techniczna">?</button>
+          <button class="icon-btn ${(state.notes && state.notes[ex.id]) || openNotes[ex.id] ? 'active' : ''}" onclick="toggleNote('${ex.id}')" title="Notatka">📝</button>
           <button class="icon-btn" onclick="openSwapModal('${ex.id}')" title="Zamień ćwiczenie">⇄</button>
         </div>
       </div>
       <div class="tip-box ${state.openTips[ex.id] ? 'show' : ''}">💡 ${ex.tip}</div>
+      ${openNotes[ex.id] ? `<textarea class="note-box" id="note_${ex.id}" placeholder="Notatka: np. siedzisko 4, oparcie 3, chwyt szeroki..." oninput="saveNote('${ex.id}', this.value)">${escHtml((state.notes && state.notes[ex.id]) || '')}</textarea>` : ((state.notes && state.notes[ex.id]) ? `<div class="note-preview" onclick="toggleNote('${ex.id}')">📝 ${escHtml(state.notes[ex.id])}</div>` : '')}
       ${readyForProgression ? `<div class="prog-alert">🔥 Zamknąłeś widełki (${ex.maxR} powt.)! Podpowiedź: ${suggestedWeight} kg (+2,5 kg).</div>` : ''}
-      ${idx === 0 ? `<button class="btn-sec" onclick="toggleWarmup('${ex.id}', ${idx})">🔥 Rozgrzewka</button>${warmupVisible[ex.id] ? `<div class="warmup-box">Serie rozgrzewkowe (orientacyjnie): 1 × 8 przy 50% oraz 1 × 4–5 przy 75% ciężaru roboczego. Nie doprowadzaj ich do zmęczenia.</div>` : ''}` : ''}
+      ${idx === 0 ? `<button class="btn-sec" onclick="toggleWarmup('${ex.id}')">🔥 Rozgrzewka</button>${warmupVisible[ex.id] ? warmupHtml(state.day) : ''}` : ''}
       ${prevHtml}
       <div class="ex-body">
       <table>
@@ -793,6 +889,7 @@ function updateStats() {
 }
 
 function startTimer(seconds) {
+  if (soundOn()) getAudioCtx();
   clearInterval(timerInterval);
   timerSec = Math.max(0, Number(seconds) || 0);
   timerEndsAt = Date.now() + timerSec * 1000;
@@ -808,13 +905,45 @@ function tickTimer() {
     document.getElementById("timerDisplay").classList.remove("running");
     document.getElementById("pauseBtn").textContent = "Start";
     if (navigator.vibrate) navigator.vibrate([300,150,300]);
+    if (soundOn()) playBeeps();
   }
 }
-function adjustTimer(delta) {
-  if (timerEndsAt) timerEndsAt += delta * 1000;
-  timerSec = Math.max(0, timerSec + delta);
-  if (timerEndsAt && timerSec <= 0) { clearInterval(timerInterval); timerInterval=null; timerEndsAt=null; }
-  updateTimerDisplay();
+function getAudioCtx() {
+  if (!audioCtx) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (AC) audioCtx = new AC();
+  }
+  if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+  return audioCtx;
+}
+function playBeeps() {
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+  [0, 0.35, 0.7].forEach(off => {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = "sine"; o.frequency.value = 880;
+    const t = ctx.currentTime + off;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.5, t + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.25);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(t); o.stop(t + 0.28);
+  });
+}
+function updateSoundBtn() {
+  const b = document.getElementById("soundBtn");
+  if (!b) return;
+  const on = soundOn();
+  b.textContent = on ? "🔊" : "🔇";
+  b.classList.toggle("off", !on);
+}
+function soundOn() { return !(state.preferences && state.preferences.sound === false); }
+function toggleSound() {
+  state.preferences = state.preferences || {};
+  state.preferences.sound = !soundOn();
+  saveState();
+  updateSoundBtn();
+  if (soundOn()) getAudioCtx(); // odblokowanie audio po kliknięciu
 }
 
 function toggleTimer() {
